@@ -903,6 +903,30 @@ collectFoodFromTree ()
     this.createAnswerButton(640, 520, answers[1], 'equalDivisionSurvival');
 }
 
+showSurvivalGoalReminderScreen ()
+{
+    this.clearQuestionScreen();
+
+    this.addQuestionObject(this.add.rectangle(640, 360, 1080, 430, 0xffffff))
+        .setStrokeStyle(4, 0x000000);
+
+    this.addQuestionObject(this.add.text(
+        640,
+        315,
+        'Remember, your job is to make decisions on behalf of the group that maximize the survival of the most members of the group.',
+        {
+            fontSize: '30px',
+            color: '#000000',
+            align: 'center',
+            wordWrap: { width: 900 },
+            lineSpacing: 8
+        }
+    ).setOrigin(0.5));
+
+    this.createNextButton(640, 560, 'Next', () => {
+        this.showGroupDistributionPreferenceQuestion();
+    });
+}
 showGroupDistributionPreferenceQuestion ()
 {
     this.clearQuestionScreen();
@@ -1871,105 +1895,22 @@ showFinalGameScreen ()
 {
     this.clearQuestionScreen();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameId = urlParams.get('game_id');
+
     const randomCode = 'SURV-' + Phaser.Math.Between(100000, 999999);
 
+    this.gameData.gameId = gameId;
     this.gameData.completionCode = randomCode;
 
-    this.addQuestionObject(
-        this.add.rectangle(640, 360, 1000, 520, 0xffffff)
-            .setStrokeStyle(4, 0x000000)
-    );
+    const qualtricsReturnUrl =
+        'https://sewg.az1.qualtrics.com/jfe/form/SV_2rijhd9Veby4Y4u';
 
-    this.addQuestionObject(
-        this.add.text(
-            640,
-            250,
-            'Thank you for playing the survival game.\nYour final score is 9/10. Good job!\n\nCopy the random code below and enter it back into the survey to receive credit for completing the game.\n\nClick the button below to copy your code.',
-            {
-                fontSize: '27px',
-                color: '#000000',
-                align: 'center',
-                wordWrap: { width: 850 },
-                lineSpacing: 8
-            }
-        ).setOrigin(0.5)
-    );
-
-    // Copy button box
-    const copyButtonBox = this.add.rectangle(
-        640,
-        515,
-        220,
-        65,
-        0xdddddd
-    );
-
-    copyButtonBox.setStrokeStyle(3, 0x000000);
-    copyButtonBox.setInteractive({ useHandCursor: true });
-
-    this.addQuestionObject(copyButtonBox);
-
-    // Copy button text
-    const copyButtonText = this.add.text(
-        640,
-        515,
-        'Copy code',
-        {
-            fontSize: '26px',
-            color: '#000000',
-            align: 'center'
-        }
-    ).setOrigin(0.5);
-
-    copyButtonText.setInteractive({ useHandCursor: true });
-
-    this.addQuestionObject(copyButtonText);
-
-    // Code text underneath
-    const codeText = this.add.text(
-        640,
-        590,
-        `Code: ${randomCode}`,
-        {
-            fontSize: '32px',
-            color: '#000000',
-            align: 'center'
-        }
-    ).setOrigin(0.5);
-
-    this.addQuestionObject(codeText);
-
-    const copyCode = async () => {
-
-        try
-        {
-            await navigator.clipboard.writeText(randomCode);
-
-            copyButtonText.setText('Copied!');
-        }
-        catch (err)
-        {
-            const tempInput = document.createElement('input');
-
-            tempInput.value = randomCode;
-
-            document.body.appendChild(tempInput);
-
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999);
-
-            document.execCommand('copy');
-
-            document.body.removeChild(tempInput);
-
-            copyButtonText.setText('Copied!');
-        }
-    };
-
-    copyButtonBox.on('pointerdown', copyCode);
-    copyButtonText.on('pointerdown', copyCode);
-
-    console.log('FINAL GAME DATA:', this.gameData);
+    window.location.href =
+        qualtricsReturnUrl +
+        '?game_id=' + encodeURIComponent(gameId) +
+        '&game_done=1' +
+        '&game_code=' + encodeURIComponent(randomCode);
 }
 
     createAnswerButton (centerX, centerY, label, variableName)
@@ -2017,30 +1958,30 @@ showFinalGameScreen ()
         this.gameData[variableName] = label;
 
         if (variableName === 'totalFoodEstimate')
-        {
-            this.showNextTaskButton(() => this.showEqualDivisionTask());
-        }
-        else if (variableName === 'perCapitaEstimate')
-        {
-            this.showNextTaskButton(() => this.showEqualDivisionSurvivalQuestion());
-        }
-        else if (variableName === 'equalDivisionSurvival')
-        {
-            this.showNextTaskButton(() => this.showGroupDistributionPreferenceQuestion());
-        }
-        else if (variableName === 'groupDistributionPreference')
-        {
-            this.showNextTaskButtonAt(640, 685, () => this.showUpperClassRedistributionQuestion());
-        }
-        else if (variableName === 'upperClassRedistribution')
-        {
-            this.showNextTaskButtonAt(640, 675, () => this.showSocialContractQuestion());
-        }
-        else if (variableName === 'socialContractGuarantee')
-        {
-            this.showNextTaskButtonAt(640, 675, () => this.showPersonalVsGroupResponsibilityQuestion());
-        }
-        else if (variableName === 'personalVsGroupResponsibility')
+{
+    this.showNextTaskButton(() => this.showEqualDivisionTask());
+}
+else if (variableName === 'perCapitaEstimate')
+{
+    this.showNextTaskButton(() => this.showEqualDivisionSurvivalQuestion());
+}
+else if (variableName === 'equalDivisionSurvival')
+{
+    this.showNextTaskButton(() => this.showSurvivalGoalReminderScreen());
+}
+else if (variableName === 'groupDistributionPreference')
+{
+    this.showNextTaskButtonAt(640, 685, () => this.showUpperClassRedistributionQuestion());
+}
+else if (variableName === 'upperClassRedistribution')
+{
+    this.showNextTaskButtonAt(640, 675, () => this.showSocialContractQuestion());
+}
+else if (variableName === 'socialContractGuarantee')
+{
+    this.showNextTaskButtonAt(640, 675, () => this.showPersonalVsGroupResponsibilityQuestion());
+}
+else if (variableName === 'personalVsGroupResponsibility')
 {
     this.showNextTaskButtonAt(640, 675, () => this.showFairRuleQuestion());
 }
@@ -2072,10 +2013,11 @@ else if (variableName === 'cooperationCompetitionChoice')
 {
     this.showNextTaskButtonAt(640, 685, () => this.showNextSurveyQuestion());
 }
-        else
-        {
-            this.showEndMessage();
-        }
+else
+{
+    this.showEndMessage();
+}
+
     });
 }
 
