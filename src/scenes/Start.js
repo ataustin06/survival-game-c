@@ -1903,14 +1903,49 @@ showFinalGameScreen ()
     this.gameData.gameId = gameId;
     this.gameData.completionCode = randomCode;
 
-    const qualtricsReturnUrl =
-        'https://sewg.az1.qualtrics.com/jfe/form/SV_2rijhd9Veby4Y4u';
+    console.log('FINAL GAME DATA:', this.gameData);
 
-    window.location.href =
-        qualtricsReturnUrl +
-        '?game_id=' + encodeURIComponent(gameId) +
-        '&game_done=1' +
-        '&game_code=' + encodeURIComponent(randomCode);
+    this.addQuestionObject(
+        this.add.rectangle(640, 360, 1000, 420, 0xffffff)
+            .setStrokeStyle(4, 0x000000)
+    );
+
+    this.addQuestionObject(
+        this.add.text(
+            640,
+            300,
+            'Thank you for completing the survival game.\n\nYou will now be returned to the survey.',
+            {
+                fontSize: '30px',
+                color: '#000000',
+                align: 'center',
+                wordWrap: { width: 820 },
+                lineSpacing: 10
+            }
+        ).setOrigin(0.5)
+    );
+
+    this.time.delayedCall(3000, () => {
+
+        // Attempt to close the game tab
+        window.close();
+
+        // Fallback message if browser blocks closing
+        this.addQuestionObject(
+            this.add.text(
+                640,
+                560,
+                'If this tab does not close automatically, please return to the survey tab.',
+                {
+                    fontSize: '24px',
+                    color: '#000000',
+                    align: 'center',
+                    wordWrap: { width: 850 }
+                }
+            ).setOrigin(0.5)
+        );
+
+    });
 }
 
     createAnswerButton (centerX, centerY, label, variableName)
